@@ -1,0 +1,54 @@
+# ----------------------------
+# Python artifacts
+# ----------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.log
+
+# Virtual environments
+vproject/
+.env/
+.env.bak/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# VSCode / IDE
+.vscode/
+.idea/
+*.swp
+
+# ----------------------------
+# Data files
+# ----------------------------
+# Raw data (huge)
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed data
+data/processed/*.npy
+data/processed/*.npz
+data/processed/*.json
+data/processed/*.txt
+!data/processed/.gitkeep
+
+# Keep vocab.json but ignore token arrays
+data/processed/train.npy
+data/processed/val.npy
+data/processed/test.npy
+
+# Large ABC music files (optional)
+samples/abc/*
+samples/midi/*
+!samples/abc/.gitkeep
+!samples/midi/.gitkeep
+
+# ----------------------------
+# Model checkpoints
+model_checkpoints/
+*.ckpt
