@@ -13,42 +13,44 @@ vproject/
 .env/
 .env.bak/
 
+# ----------------------------
 # Jupyter
+# ----------------------------
 .ipynb_checkpoints/
 *.ipynb_checkpoints/
-*.ipynb_checkpoints
 
-# VSCode / IDE
+# ----------------------------
+# IDEs
+# ----------------------------
 .vscode/
 .idea/
 *.swp
 
 # ----------------------------
-# Data files
+# Data files (DO NOT COMMIT DATA)
 # ----------------------------
-# Raw data (huge)
+
+# Raw Lakh data
+data/lmd_full/
 data/raw/*
-!data/raw/.gitkeep
+!data/raw/README.md
 
-# Processed data
-data/processed/*.npy
-data/processed/*.npz
-data/processed/*.json
-data/processed/*.txt
-!data/processed/.gitkeep
+# Processed datasets
+data/processed/*
+!data/processed/vocab.json
+!data/processed/README.md
 
-# Keep vocab.json but ignore token arrays
-data/processed/train.npy
-data/processed/val.npy
-data/processed/test.npy
-
-# Large ABC music files (optional)
+# ----------------------------
+# Generated samples (optional)
+# ----------------------------
 samples/abc/*
 samples/midi/*
-!samples/abc/.gitkeep
-!samples/midi/.gitkeep
+!samples/README.md
 
 # ----------------------------
-# Model checkpoints
+# Model artifacts
+# ----------------------------
 model_checkpoints/
 *.ckpt
+*.pt
+*.pth
