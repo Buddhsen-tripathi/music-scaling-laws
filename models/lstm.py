@@ -124,11 +124,11 @@ class LSTMLM(nn.Module):
         return idx
 
 
-# Predefined configurations for scaling experiments
+# Predefined configurations for scaling experiments (aligned ~2× transformer sizes)
 LSTM_CONFIGS = {
-    "tiny": LSTMConfig(n_layer=1, n_embd=128, hidden_size=256),      # ~1M
-    "small": LSTMConfig(n_layer=2, n_embd=192, hidden_size=384),     # ~5M
-    "medium": LSTMConfig(n_layer=3, n_embd=256, hidden_size=640),    # ~20M
-    "large": LSTMConfig(n_layer=4, n_embd=384, hidden_size=896),     # ~50M
-    "xl": LSTMConfig(n_layer=4, n_embd=512, hidden_size=1280),       # ~100M+
+    "tiny": LSTMConfig(n_layer=1, n_embd=192, hidden_size=384),        # ~1M
+    "small": LSTMConfig(n_layer=2, n_embd=256, hidden_size=512),       # ~5M
+    "medium": LSTMConfig(n_layer=3, n_embd=512, hidden_size=1024),     # ~20M
+    "large": LSTMConfig(n_layer=4, n_embd=640, hidden_size=1280),      # ~50M
+    "xl": LSTMConfig(n_layer=4, n_embd=896, hidden_size=1792),         # ~100M
 }
