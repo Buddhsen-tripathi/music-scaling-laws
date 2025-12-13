@@ -1,4 +1,15 @@
-"""Step 3: Clean individual ABC files and merge into a single corpus for training."""
+"""Step 3: Clean individual ABC files and merge into a single corpus for training.
+
+Cleaning steps (based on Gwern's GPT-2 music preprocessing):
+- Remove comments (lines starting with %)
+- Remove voice markers (V:) for single-voice output
+- Remove lyrics (w: lines)
+- Remove guitar chords ("..." annotations)
+- Strip long/messy titles from MIDI paths
+- Keep only essential headers: X, T, M, L, Q, K
+- Filter non-printable characters
+- Deduplicate by content hash
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,22 +24,38 @@ OUT_DIR = ROOT / "data" / "processed"    # Output: Merged corpus
 OUT_PATH = OUT_DIR / "all_abc.txt"       # Single file containing all tunes
 
 MIN_LEN = 64    # Minimum characters per tune (skip very short pieces)
-MAX_LEN = 8192  # Maximum characters per tune (truncate very long pieces)
+MAX_LEN = 4096  # Maximum characters per tune (truncate very long pieces)
 
 ALLOWED = set(string.printable)  # Only keep printable ASCII characters
 NOTE_RE = re.compile(r"[A-Ga-g]")  # Pattern to detect music notes
 KEY_RE = re.compile(r"(?m)^\s*K:")  # Pattern to detect key signature header
 
+# Headers to keep (essential ABC metadata)
+KEEP_HEADERS = {"X:", "T:", "M:", "L:", "Q:", "K:"}
+# Headers to skip (voice, lyrics, guitar chords, etc.)
+SKIP_PREFIXES = ("V:", "w:", "W:", "%%", "I:", "N:", "H:", "R:", "B:", "D:", "F:", "G:", "O:", "P:", "S:", "Z:")
+
 
 def clean_text(s: str) -> str:
-    """Remove comments, filter non-printable chars, and enforce length limits."""
+    """Remove comments, voice markers, lyrics, and enforce length limits."""
     lines = []
     for line in s.splitlines():
         t = line.strip()
         if not t:
             continue
-        if t.startswith("%"):  # Skip ABC comments
+        # Skip comments
+        if t.startswith("%"):
             continue
+        # Skip voice markers, lyrics, and other non-essential headers
+        if t.startswith(SKIP_PREFIXES):
+            continue
+        # Clean up messy titles (from MIDI file paths)
+        if t.startswith("T:"):
+            # Simplify long path-based titles
+            if "/Users/" in t or "/home/" in t or len(t) > 60:
+                t = "T:Untitled"
+        # Remove inline guitar chords like "Cm" "G7" etc in quotes
+        t = re.sub(r'"[^"]*"', '', t)
         lines.append(t)
 
     s = "\n".join(lines)

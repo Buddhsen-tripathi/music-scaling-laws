@@ -1,17 +1,22 @@
 """
-Main preprocessing pipeline for Scaling Laws for Music Language Models.
+Main pipeline for Scaling Laws for Music Language Models.
 
 Pipeline steps:
-    1. convert  - MIDI → ABC using midi2abc
-    2. verify   - Validate ABC files and remove corrupted ones
-    3. clean    - Clean and merge ABC files into single corpus
-    4. split    - Split corpus into train/val/test (98/1/1)
-    5. tokenize - Convert text to numpy arrays for training
+    1. convert   - MIDI → ABC using midi2abc
+    2. verify    - Validate ABC files and remove corrupted ones
+    3. clean     - Clean and merge ABC files into single corpus
+    4. split     - Split corpus into train/val/test (98/1/1)
+    5. tokenize  - Convert text to numpy arrays for training
+    6. train     - Train transformer and LSTM models (scaling experiment)
+    7. evaluate  - Generate scaling plots and analysis
+    8. generate  - Generate music samples from best model
 
 Usage:
-    python pipeline.py                    # Run full pipeline
-    python pipeline.py --from clean       # Start from clean step
-    python pipeline.py --force            # Force re-run all steps
+    python pipeline.py                        # Run full pipeline
+    python pipeline.py --from clean           # Start from clean step
+    python pipeline.py --to tokenize          # Stop after tokenize (preprocessing only)
+    python pipeline.py --from train --to train  # Only run training
+    python pipeline.py --force                # Force re-run all steps
 """
 from __future__ import annotations
 
@@ -42,7 +47,7 @@ class PipelineConfig:
 
 
 # Pipeline execution order
-ORDER = ["convert", "verify", "clean", "split", "tokenize"]
+ORDER = ["convert", "verify", "clean", "split", "tokenize", "train", "evaluate", "generate"]
 
 
 def default_config() -> PipelineConfig:
@@ -158,11 +163,113 @@ def step_tokenize(cfg: PipelineConfig, force: bool = False) -> None:
     tok.main()
 
 
+def step_train(cfg: PipelineConfig, force: bool = False, model_type: str = "both") -> None:
+    """
+    Train transformer and LSTM models for scaling experiment.
+    Trains 5 transformer sizes and 4 LSTM sizes, each for exactly 1 epoch.
+    
+    Args:
+        model_type: "transformer", "lstm", or "both"
+    """
+    from train.scaling_experiment import run_scaling_experiment
+
+    results_path = cfg.root / "scaling_results.json"
+    checkpoints_dir = cfg.root / "checkpoints"
+
+    import json
+
+    all_results = []
+
+    # Train transformers (5 sizes)
+    if model_type in ("transformer", "both"):
+        print("\n" + "="*60)
+        print("TRANSFORMER SCALING EXPERIMENT")
+        print("="*60)
+        transformer_results = run_scaling_experiment(
+            model_type="transformer",
+            sizes=["tiny", "small", "medium", "large", "xl"],
+            data_dir=cfg.processed_dir,
+            save_dir=checkpoints_dir,
+            # batch_size and block_size use defaults from config/constants.py
+            max_iters=None,  # 1 epoch
+            force=force,
+        )
+        all_results.extend(transformer_results)
+
+    # Train LSTMs (4 sizes)
+    if model_type in ("lstm", "both"):
+        print("\n" + "="*60)
+        print("LSTM SCALING EXPERIMENT")
+        print("="*60)
+        lstm_results = run_scaling_experiment(
+            model_type="lstm",
+            sizes=["tiny", "small", "medium", "large"],
+            data_dir=cfg.processed_dir,
+            save_dir=checkpoints_dir,
+            # batch_size and block_size use defaults from config/constants.py
+            max_iters=None,  # 1 epoch
+            force=force,
+        )
+        all_results.extend(lstm_results)
+
+    # Save results
+    with open(results_path, "w") as f:
+        json.dump(all_results, f, indent=2, default=str)
+    print(f"[train] Results saved to {results_path}")
+
+
+def step_evaluate(cfg: PipelineConfig, force: bool = False) -> None:
+    """
+    Generate scaling plots and analysis from training results.
+    """
+    from eval.scaling_analysis import main as run_analysis
+
+    results_path = cfg.root / "scaling_results.json"
+    report_dir = cfg.root / "report"
+
+    if not results_path.exists():
+        print("[evaluate] No scaling_results.json found, skipping")
+        return
+
+    report_dir.mkdir(parents=True, exist_ok=True)
+    run_analysis(str(results_path), str(report_dir))
+    print(f"[evaluate] Plots saved to {report_dir}")
+
+
+def step_generate(cfg: PipelineConfig, force: bool = False) -> None:
+    """
+    Generate music samples from the best trained model.
+    """
+    from eval.generate import main as run_generate
+
+    checkpoints_dir = cfg.root / "checkpoints"
+    samples_dir = cfg.root / "samples"
+
+    # Find best checkpoint (prefer larger transformer, use _final.pt)
+    for size in ["xl", "large", "medium", "small", "tiny"]:
+        ckpt = checkpoints_dir / "transformer" / f"transformer_{size}_final.pt"
+        if ckpt.exists():
+            best_ckpt = ckpt
+            break
+    else:
+        print("[generate] No checkpoints found, skipping")
+        return
+
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    print(f"[generate] Using checkpoint: {best_ckpt}")
+    run_generate(str(best_ckpt), str(samples_dir), num_samples=10)
+    print(f"[generate] Samples saved to {samples_dir}")
+
+
 def parse_args():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--from", dest="from_step", default="convert", choices=ORDER)
-    ap.add_argument("--to", dest="to_step", default="tokenize", choices=ORDER)
-    ap.add_argument("--force", action="store_true")
+    ap = argparse.ArgumentParser(description="Scaling Laws for Music Language Models Pipeline")
+    ap.add_argument("--from", dest="from_step", default="convert", choices=ORDER,
+                    help="Start from this step")
+    ap.add_argument("--to", dest="to_step", default="generate", choices=ORDER,
+                    help="Stop after this step")
+    ap.add_argument("--force", action="store_true", help="Force re-run all steps")
+    ap.add_argument("--model-type", choices=["transformer", "lstm", "both"], default="both",
+                    help="Model type to train (for train step)")
     return ap.parse_args()
 
 
@@ -190,6 +297,12 @@ def main():
             step_split(cfg, args.force)
         elif step == "tokenize":
             step_tokenize(cfg, args.force)
+        elif step == "train":
+            step_train(cfg, args.force, args.model_type)
+        elif step == "evaluate":
+            step_evaluate(cfg, args.force)
+        elif step == "generate":
+            step_generate(cfg, args.force)
 
     print("Pipeline complete.")
 
