@@ -8,6 +8,8 @@ from pathlib import Path
 import json
 import argparse
 
+import numpy as np
+
 from train.trainer import TrainConfig, train
 from config.constants import BATCH_SIZE, BLOCK_SIZE
 
@@ -43,6 +45,11 @@ def run_scaling_experiment(
             data_dir=data_dir,
             save_dir=save_dir / model_type,
         )
+
+        if model_type == "transformer" and size == "xl":
+            train_tokens = int(np.load(data_dir / "train.npy", mmap_mode="r").shape[0])
+            config.max_tokens = train_tokens
+            print(f"[override] transformer/xl max_tokens set to full epoch: {train_tokens:,}")
         
         try:
             stats = train(config, force=force)

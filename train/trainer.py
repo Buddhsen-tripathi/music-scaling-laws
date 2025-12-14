@@ -67,15 +67,18 @@ class TrainConfig:
 
 class MusicDataset(Dataset):
     def __init__(self, data_path: Path, block_size: int):
-        self.data = np.load(data_path).astype(np.int64)
+        self.data = np.load(data_path, mmap_mode="r")
         self.block_size = block_size
+        self.max_start = len(self.data) - block_size - 1
 
     def __len__(self):
-        return max(1, len(self.data) - self.block_size)
+        return max(1, self.max_start)
 
     def __getitem__(self, idx):
-        x = torch.from_numpy(self.data[idx : idx + self.block_size].copy())
-        y = torch.from_numpy(self.data[idx + 1 : idx + 1 + self.block_size].copy())
+        i = np.random.randint(0, self.max_start)
+
+        x = torch.from_numpy(self.data[i : i + self.block_size].astype(np.int64, copy=False))
+        y = torch.from_numpy(self.data[i + 1 : i + 1 + self.block_size].astype(np.int64, copy=False))
         return x, y
 
 
@@ -155,7 +158,7 @@ def train(config: TrainConfig, force: bool = False) -> dict:
     train_dataset = MusicDataset(config.data_dir / "train.npy", config.block_size)
     val_dataset = MusicDataset(config.data_dir / "val.npy", config.block_size)
     
-    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0, pin_memory=False)
+    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=False, num_workers=0, pin_memory=False)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False, num_workers=0, pin_memory=False)
     
     # Calculate iterations based on token budget (capped at max_tokens)
@@ -165,8 +168,8 @@ def train(config: TrainConfig, force: bool = False) -> dict:
     iters_for_budget = config.max_tokens // tokens_per_iter
     
     if config.max_iters is None:
-        # Use the smaller of: 1 epoch or token budget
-        config.max_iters = min(iters_per_epoch, iters_for_budget)
+        config.max_tokens = total_tokens
+        config.max_iters = iters_per_epoch
     if config.lr_decay_iters is None:
         config.lr_decay_iters = config.max_iters
     
@@ -201,7 +204,10 @@ def train(config: TrainConfig, force: bool = False) -> dict:
     if ckpt_final.exists() and not force:
         print(f"[SKIP] Final checkpoint exists: {ckpt_final}")
         print(f"       Use --force or delete checkpoint to retrain")
-        ckpt = torch.load(ckpt_final, map_location=config.device)
+        import __main__ as _main
+        if not hasattr(_main, "TrainConfig"):
+            setattr(_main, "TrainConfig", TrainConfig)
+        ckpt = torch.load(ckpt_final, map_location=config.device, weights_only=False)
         return {
             "model_type": config.model_type,
             "model_size": config.model_size,
@@ -223,7 +229,10 @@ def train(config: TrainConfig, force: bool = False) -> dict:
     # Resume from _last checkpoint if exists
     if config.resume and ckpt_last.exists():
         print(f"Resuming from checkpoint: {ckpt_last}")
-        ckpt = torch.load(ckpt_last, map_location=config.device)
+        import __main__ as _main
+        if not hasattr(_main, "TrainConfig"):
+            setattr(_main, "TrainConfig", TrainConfig)
+        ckpt = torch.load(ckpt_last, map_location=config.device, weights_only=False)
         
         # Validate config compatibility
         old_cfg = ckpt.get("train_config", None)

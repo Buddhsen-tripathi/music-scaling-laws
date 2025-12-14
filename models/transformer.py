@@ -190,5 +190,5 @@ TRANSFORMER_CONFIGS = {
     "small": TransformerConfig(n_layer=6, n_head=6, n_embd=240),     # ~5M
     "medium": TransformerConfig(n_layer=8, n_head=8, n_embd=440),    # ~20M
     "large": TransformerConfig(n_layer=12, n_head=10, n_embd=620),   # ~50M
-    "xl": TransformerConfig(n_layer=16, n_head=12, n_embd=768),      # ~100M
+    "xl": TransformerConfig(n_layer=14, n_head=12, n_embd=768),      # ~100M
 }

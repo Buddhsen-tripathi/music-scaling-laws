@@ -136,6 +136,15 @@ def plot_training_curves(
 ):
     """Plot training loss curves for all models."""
     import torch
+    import __main__ as _main
+
+    try:
+        from train.trainer import TrainConfig
+
+        if not hasattr(_main, "TrainConfig"):
+            setattr(_main, "TrainConfig", TrainConfig)
+    except Exception:
+        pass
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
@@ -145,11 +154,11 @@ def plot_training_curves(
         ax.set_title(f"{model_type.capitalize()} Training Curves", fontsize=14)
         
         for i, size in enumerate(["tiny", "small", "medium", "large", "xl"]):
-            ckpt_path = checkpoints_dir / model_type / f"{model_type}_{size}.pt"
+            ckpt_path = checkpoints_dir / model_type / f"{model_type}_{size}_final.pt"
             if not ckpt_path.exists():
                 continue
             
-            ckpt = torch.load(ckpt_path, map_location="cpu")
+            ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
             train_losses = ckpt.get("train_losses", [])
             
             if train_losses:

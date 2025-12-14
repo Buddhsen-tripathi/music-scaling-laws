@@ -196,14 +196,14 @@ def step_train(cfg: PipelineConfig, force: bool = False, model_type: str = "both
         )
         all_results.extend(transformer_results)
 
-    # Train LSTMs (4 sizes)
+    # Train LSTMs (5 sizes)
     if model_type in ("lstm", "both"):
         print("\n" + "="*60)
         print("LSTM SCALING EXPERIMENT")
         print("="*60)
         lstm_results = run_scaling_experiment(
             model_type="lstm",
-            sizes=["tiny", "small", "medium", "large"],
+            sizes=["tiny", "small", "medium", "large", "xl"],
             data_dir=cfg.processed_dir,
             save_dir=checkpoints_dir,
             # batch_size and block_size use defaults from config/constants.py
@@ -223,9 +223,11 @@ def step_evaluate(cfg: PipelineConfig, force: bool = False) -> None:
     Generate scaling plots and analysis from training results.
     """
     from eval.scaling_analysis import main as run_analysis
+    from eval.evaluate import main as run_eval
 
     results_path = cfg.root / "scaling_results.json"
     report_dir = cfg.root / "report"
+    eval_results_path = report_dir / "eval_results.json"
 
     if not results_path.exists():
         print("[evaluate] No scaling_results.json found, skipping")
@@ -233,6 +235,27 @@ def step_evaluate(cfg: PipelineConfig, force: bool = False) -> None:
 
     report_dir.mkdir(parents=True, exist_ok=True)
     run_analysis(str(results_path), str(report_dir))
+
+    # Compute test perplexity for all checkpoints
+    import sys as _sys
+    old_argv = list(_sys.argv)
+    try:
+        _sys.argv = [
+            "evaluate.py",
+            "--checkpoints-dir",
+            str(cfg.root / "checkpoints"),
+            "--data-dir",
+            str(cfg.processed_dir),
+            "--output",
+            str(eval_results_path),
+            "--batch-size",
+            "32",
+            "--max-batches",
+            "50",
+        ]
+        run_eval()
+    finally:
+        _sys.argv = old_argv
     print(f"[evaluate] Plots saved to {report_dir}")
 
 
@@ -257,7 +280,7 @@ def step_generate(cfg: PipelineConfig, force: bool = False) -> None:
 
     samples_dir.mkdir(parents=True, exist_ok=True)
     print(f"[generate] Using checkpoint: {best_ckpt}")
-    run_generate(str(best_ckpt), str(samples_dir), num_samples=10)
+    run_generate(str(best_ckpt), str(samples_dir), num_samples=10, to_midi=True)
     print(f"[generate] Samples saved to {samples_dir}")
 
 
