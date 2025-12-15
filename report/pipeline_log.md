@@ -1,3 +1,7 @@
+Colab run:
+
+https://colab.research.google.com/drive/1oDLwvRVEZum9uxfaDhLJMxBqppQ3u5kW?usp=sharing
+
 ```python
 !python pipeline.py --from train --to generate
 ```
