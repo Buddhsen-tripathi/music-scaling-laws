@@ -399,7 +399,6 @@ Interpreting these fits on this dataset suggests that Transformer performance im
 
 - Evaluate longer-context models (larger `BLOCK_SIZE`) and/or note-level tokenization to better capture long-range musical structure.
 - Improve post-processing for bracket/chord syntax to increase MIDI convertibility without over-constraining the model.
-- Train beyond 1 epoch for the largest models to separate “scaling with parameters” from “scaling with training compute”.
 
 ---
 
@@ -415,8 +414,6 @@ Key findings:
 - Generated samples are syntactically valid ABC at a high rate (100% in our 10-sample batch), but not always convertible back to MIDI (70%), highlighting a gap between syntax validity and downstream tool compatibility.
 
 Overall, the experiments support the hypothesis that scaling laws extend to symbolic music and that Transformers benefit more from increased capacity than LSTMs on this structured sequence domain.
-
-All logs and artifacts were produced by a single end-to-end run (`report/pipeline_log.md`) and synced into this repository.
 
 ---
 
