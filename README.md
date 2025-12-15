@@ -1,8 +1,13 @@
 # Scaling Laws for Music Language Models
 
-A study of transformer vs. LSTM scaling on symbolic music (ABC notation). Includes data preprocessing, model training, scaling-law plots, and music generation experiments.
+A study of Transformer vs. LSTM scaling on symbolic music (ABC notation). Includes data preprocessing, model training, scaling-law plots, and music generation experiments.
 
-**Course:** CS-GY 6923 – Machine Learning, NYU Tandon School of Engineering
+**Course:** CS-GY 6923 – Machine Learning  
+**Institution:** New York University
+
+**Project Details:** [`cs_gy_6923_project.pdf`](cs_gy_6923_project.pdf)
+
+**Report:** [`report/report.md`](report/report.md) (and generated [`report/report.pdf`](report/report.pdf))
 
 ## Project Goals
 - Build a full preprocessing pipeline for ABC music (Lakh MIDI → ABC)
@@ -11,30 +16,70 @@ A study of transformer vs. LSTM scaling on symbolic music (ABC notation). Includ
 - Derive scaling laws (loss vs model size): L = a·N^(-α) + c
 - Generate symbolic music samples
 
+## Quickstart
+
+### 1) Create environment
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2) Install MIDI → ABC converter
+This project uses the `midi2abc` CLI from the `abcmidi` package.
+
+```bash
+brew install abcmidi
+```
+
+### 3) Put the Lakh MIDI Dataset in the expected location
+Download from https://colinraffel.com/projects/lmd/ and extract into:
+
+```text
+data/lmd_full/
+```
+
+### 4) Run the end-to-end pipeline
+```bash
+python pipeline.py
+```
+
+This runs:
+`convert → verify → clean → split → tokenize → train → evaluate → generate`.
+
+`pipeline.py` is a single end-to-end orchestration script: one command runs the full workflow (and it can resume/skip completed steps).
+
+## Setup Notes
+
+- The pipeline is designed to be **resumable**.
+- Use `--force` to re-run steps even if outputs already exist.
+- By default, conversion is capped (see `PipelineConfig.target_abc_files` in `pipeline.py`).
+
 ## Repository Structure
 ```
 music-scaling-laws/
-├── pipeline.py              # Main entry point for preprocessing
+├── pipeline.py              # Main orchestration script
 ├── preprocess/              # Data preprocessing scripts
-│   ├── convert_lmd_to_abc.py   # Step 1: MIDI → ABC conversion (uses midi2abc)
-│   ├── verify_abc.py           # Step 2: Validate ABC files, remove corrupted
-│   ├── clean_and_merge_abc.py  # Step 3: Clean and merge into single corpus
-│   ├── build_dataset.py        # Step 4: Train/val/test split (98/1/1)
-│   └── tokenize.py             # Step 5: Character-level tokenization
+│   ├── convert_lmd_to_abc.py   
+│   ├── verify_abc.py           
+│   ├── clean_and_merge_abc.py  
+│   ├── plot_length_hist.py     
+│   ├── build_dataset.py        
+│   └── tokenize.py           
 ├── models/                  # Model architectures
-│   ├── transformer.py          # GPT-style decoder-only transformer
-│   └── lstm.py                 # LSTM language model
+│   ├── transformer.py          
+│   └── lstm.py                
 ├── train/                   # Training scripts
-│   ├── trainer.py              # Single model training
-│   └── scaling_experiment.py   # Run full scaling experiments
+│   ├── trainer.py              
+│   └── scaling_experiment.py  
 ├── eval/                    # Evaluation and analysis
-│   ├── evaluate.py             # Compute perplexity metrics
-│   ├── scaling_analysis.py     # Fit power laws, generate plots
-│   └── generate.py             # Music sample generation
+│   ├── evaluate.py             
+│   ├── scaling_analysis.py     
+│   └── generate.py             
 ├── data/                    # Data directory (not in git)
-│   ├── lmd_full/               # Lakh MIDI dataset
-│   ├── raw/                    # Converted ABC files
-│   └── processed/              # Tokenized train/val/test splits
+│   ├── lmd_full/               
+│   ├── raw/                    
+│   └── processed/              
 ├── checkpoints/             # Saved model checkpoints
 ├── samples/                 # Generated music samples
 └── report/                  # Report figures and outputs
@@ -52,56 +97,20 @@ The pipeline converts raw MIDI files to tokenized training data in 5 steps:
 | 4. split | `build_dataset.py` | Split into train/val/test (98%/1%/1%) |
 | 5. tokenize | `tokenize.py` | Character-level tokenization to numpy |
 
-### Pipeline Statistics (Lakh MIDI Dataset)
-- **Input MIDI files:** 178,561
-- **Converted ABC files:** 117,222 (97.7% success rate)
-- **Valid after verification:** 116,986 (99.8%)
-- **Final corpus:** 823M characters, 116,379 tunes
-- **Vocabulary size:** 97 characters
-- **Training tokens:** 807M
-
-## Setup
-
-### 1. Install Dependencies
+### Run preprocessing only
 ```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Install midi2abc for MIDI conversion
-brew install abcmidi
+python pipeline.py --to tokenize
 ```
 
-### 2. Download Lakh MIDI Dataset
+### Run specific steps / resume
 ```bash
-# Download from https://colinraffel.com/projects/lmd/
-# Extract to data/lmd_full/
-```
-
-### 3. Run Preprocessing Pipeline
-```bash
-# Run full pipeline (convert → verify → clean → split → tokenize)
-python pipeline.py
-
-# Or run individual steps
-python pipeline.py --from convert --to convert  # Only conversion
-python pipeline.py --from clean --to tokenize   # Skip conversion
-python pipeline.py --force                       # Force re-run all steps
+python pipeline.py --from convert --to verify
+python pipeline.py --from clean --to tokenize
+python pipeline.py --from train --to train --model-type transformer
+python pipeline.py --force
 ```
 
 ## Training
-
-### Current Transformer Results (120M-token cap, cleaned corpus, B=128, T=256)
-
-| Model | Params | Train loss | Val loss | Time (hh:mm:ss) |
-|-------|--------|------------|----------|-----------------|
-| tiny  | 0.8M   | 0.8175     | 0.7309   | 0:28:03         |
-| small | 4.2M   | 0.5944     | 0.5524   | 1:22:02         |
-| medium | — | training | in progress | — |
-
-Notes:
-- Preprocessing now strips `V:` voice markers, lyrics (`w:`/`W:`), inline chord annotations, and overly long titles; max piece length capped at 4096 chars.
-- Token budget capped at 120M tokens per model; batch=128, block=256 from `config/constants.py`.
 
 ### Train a Single Model
 ```bash
@@ -121,49 +130,66 @@ python train/scaling_experiment.py --model-type both
 python train/scaling_experiment.py --model-type transformer --sizes tiny small medium large xl
 ```
 
+### Train via pipeline
+```bash
+python pipeline.py --from train --to train --model-type both
+```
+
 ## Evaluation
 
 ### Compute Perplexity
 ```bash
-python eval/evaluate.py --checkpoints-dir checkpoints
+python eval/evaluate.py --checkpoints-dir checkpoints --data-dir data/processed --output report/eval_results.json
 ```
 
 ### Generate Scaling Plots
 ```bash
-python eval/scaling_analysis.py --results scaling_results.json
+python eval/scaling_analysis.py --results scaling_results.json --output-dir report --checkpoints checkpoints
 ```
 
 ### Generate Music Samples
 ```bash
 # Unconditional generation
-python eval/generate.py --checkpoint checkpoints/transformer/transformer_large.pt --num-samples 10
+python eval/generate.py --checkpoint checkpoints/transformer/transformer_xl_final.pt --num-samples 10 --output-dir samples
 
 # Conditional generation with prompt
-python eval/generate.py --checkpoint checkpoints/transformer/transformer_large.pt --prompt "X:1\nT:My Song\nM:4/4\nK:C\n"
+python eval/generate.py --checkpoint checkpoints/transformer/transformer_xl_final.pt --prompt "X:1\nT:My Song\nM:4/4\nK:C\n" --output-dir samples
 
 # Convert to MIDI
-python eval/generate.py --checkpoint checkpoints/transformer/transformer_large.pt --to-midi
+python eval/generate.py --checkpoint checkpoints/transformer/transformer_xl_final.pt --to-midi --output-dir samples
 ```
+
+## Outputs
+
+- `data/raw/`: converted ABC files
+- `data/processed/`: merged corpus + splits + tokenized arrays (`train.npy`, `val.npy`, `test.npy`, `vocab.json`)
+- `checkpoints/<model_type>/`: training checkpoints (e.g. `transformer_xl_final.pt`)
+- `scaling_results.json`: consolidated training results
+- `report/`:
+  - plots: `scaling_laws.png`, `training_curves.png`
+  - tables: `results_table.md`
+  - eval: `eval_results.json`
+- `samples/`: generated `.abc`, optional `.mid`, plus `samples.json`
 
 ## Model Configurations
 
 ### Transformers
-| Size   | Layers | Heads | Embed | ~Params |
+| Size | Layers | Heads | d_model | Parameters |
 |--------|--------|-------|-------|---------|
-| tiny   | 4      | 4     | 128   | ~1M     |
-| small  | 6      | 6     | 192   | ~5M     |
-| medium | 8      | 8     | 384   | ~20M    |
-| large  | 12     | 12    | 512   | ~50M    |
-| xl     | 16     | 16    | 768   | ~100M+  |
+| tiny | 4 | 4 | 128 | ~1M |
+| small | 6 | 6 | 240 | ~5M |
+| medium | 8 | 8 | 440 | ~20M |
+| large | 12 | 10 | 620 | ~50M |
+| xl | 14 | 12 | 768 | ~100M |
 
 ### LSTMs
-| Size   | Layers | Embed | Hidden | ~Params |
-|--------|--------|-------|--------|---------|
-| tiny   | 1      | 128   | 256    | ~1M     |
-| small  | 2      | 192   | 384    | ~5M     |
-| medium | 3      | 256   | 640    | ~20M    |
-| large  | 4      | 384   | 896    | ~50M    |
-| xl     | 4      | 512   | 1280   | ~100M+  |
+| Size | Layers | Hidden | Parameters |
+|--------|--------|--------|---------|
+| tiny | 1 | 384 | ~1M |
+| small | 2 | 512 | ~5M |
+| medium | 3 | 1024 | ~20M |
+| large | 4 | 1280 | ~50M |
+| xl | 4 | 1792 | ~100M |
 
 ## References
 - [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (Kaplan et al., 2020)
