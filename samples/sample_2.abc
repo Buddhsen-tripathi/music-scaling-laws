@@ -1,7 +1,31 @@
-X:1\nT:Gen\nM:4/4\nL:1/8\nQ:1/4=120\nK:C\nCDEF GABc|\nts
-V:1
-z2 [a G- D-]2 [A- D-] [A D-]/2 [A D]/2 z/2 z/2 (3D2 A,/2/2 D/2 G/2 A/2-| [D- B,]/2 [D B,]3/2 G/2 z/2  (3E/2 D2 B,> D/2 G,/2 z/2   (3D/2 ^G< B/2 D/2  B,/2 z/2| A,> A,,/2 z/2 A,/2 z/2  A,/2 z/2 C> E/2|
-z C [C- A,] [C- G,-]3/2 [C- A,-]/2 [A, G,]/2  z [E C] z/2| [E- A,]4  [E C A,]> G2 z|
-[=E- C- A,-]3 [E C]/2 z/2 [E- C-]/2 [E C-]| [E- C- A,-]6 [E C A,]/2 z/2| C,/2 z [F C A,]2  A, z4|
-[E E A, A,]  z2  [E B, A,]3/2  z2| [E ^G, =G,]6  z4| z6|
-[D- B, G,]6
+X:1
+T:Untitled
+M: 4/4
+L: 1/8
+Q:1/4=120
+K:G % 1 sharps
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| z8| z8| z8|
+z8| C,,8-| C,,8-| C,,8-|
+C,,8-| C,,8-| C,,8|
+z8| z4  z3/2
+[B, ^G,]/2  [C A,] z/2 [D B,]/2| [E- C-]6  [E C] z/2 [E ^C]/2| [

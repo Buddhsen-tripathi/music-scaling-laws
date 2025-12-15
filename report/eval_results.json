@@ -1,0 +1,82 @@
+[
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/lstm/lstm_large_final.pt",
+    "model_type": "lstm",
+    "num_params": 49319777,
+    "val_loss": 0.4621839737892151,
+    "val_perplexity": 1.5833923994574062,
+    "test_perplexity": 1.5745944222293988
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/lstm/lstm_medium_final.pt",
+    "model_type": "lstm",
+    "num_params": 23194721,
+    "val_loss": 0.4825235876441002,
+    "val_perplexity": 1.621964753519377,
+    "test_perplexity": 1.6278208806060475
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/lstm/lstm_small_final.pt",
+    "model_type": "lstm",
+    "num_params": 3728993,
+    "val_loss": 0.5713578599691391,
+    "val_perplexity": 1.759981486376177,
+    "test_perplexity": 1.7704039806312228
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/lstm/lstm_tiny_final.pt",
+    "model_type": "lstm",
+    "num_params": 925921,
+    "val_loss": 0.6650242131948471,
+    "val_perplexity": 1.9550920586099787,
+    "test_perplexity": 1.950545351518226
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/lstm/lstm_xl_final.pt",
+    "model_type": "lstm",
+    "num_params": 96572769,
+    "val_loss": 0.4456670618057251,
+    "val_perplexity": 1.569091664238464,
+    "test_perplexity": 1.5468430966549935
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/transformer/transformer_large_final.pt",
+    "model_type": "transformer",
+    "num_params": 55444740,
+    "val_loss": 0.41317643254995345,
+    "val_perplexity": 1.5106409036444737,
+    "test_perplexity": 1.516462054002027
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/transformer/transformer_medium_final.pt",
+    "model_type": "transformer",
+    "num_params": 18643240,
+    "val_loss": 0.4280036383867264,
+    "val_perplexity": 1.538395784720177,
+    "test_perplexity": 1.5194725685950055
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/transformer/transformer_small_final.pt",
+    "model_type": "transformer",
+    "num_params": 4176720,
+    "val_loss": 0.45945381969213483,
+    "val_perplexity": 1.5862668299622846,
+    "test_perplexity": 1.5828082149465987
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/transformer/transformer_tiny_final.pt",
+    "model_type": "transformer",
+    "num_params": 801152,
+    "val_loss": 0.5633401149511337,
+    "val_perplexity": 1.7497133376803748,
+    "test_perplexity": 1.7413761162392143
+  },
+  {
+    "checkpoint": "/content/music-scaling-laws/checkpoints/transformer/transformer_xl_final.pt",
+    "model_type": "transformer",
+    "num_params": 99209472,
+    "val_loss": 0.408765869140625,
+    "val_perplexity": 1.5036919485660436,
+    "test_perplexity": 1.4995832730873444
+  }
+]

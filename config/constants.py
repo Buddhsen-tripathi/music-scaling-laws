@@ -17,7 +17,7 @@ WEIGHT_DECAY = 0.1
 GRAD_CLIP = 1.0
 
 # Checkpointing
-CHECKPOINT_INTERVAL = 400
+CHECKPOINT_INTERVAL = 500
 EVAL_INTERVAL = 500
 
 # Data paths (relative to project root)
